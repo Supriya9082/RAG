@@ -52,9 +52,4 @@ The updated version addresses these issues with the following optimizations:
 
 ---
 
-## 🚀 How to Run
 
-1. **Clone the repo**
-   ```bash
-   git clone https://github.com/your-username/rag-pdf-qa.git
-   cd rag-pdf-qa
