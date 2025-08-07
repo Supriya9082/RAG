@@ -14,16 +14,16 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 
-# ========== Load API Keys ==========
+
 load_dotenv()
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY")
 groq_api_key = os.getenv("GROQ_API_KEY")
 
-# ========== LLM + Embeddings ==========
+
 llm = ChatGroq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192")
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-# ========== Prompt Template ==========
+
 prompt = ChatPromptTemplate.from_template("""
 Answer the question based only on the context provided below.
 
@@ -35,14 +35,14 @@ Question: {input}
 Answer:
 """)
 
-# ========== Streamlit App UI ==========
+
 st.set_page_config(page_title="RAG Q&A from PDF", layout="centered")
-st.title("📄 RAG Q&A on Uploaded PDFs using Groq + FAISS")
+st.title("RAG Q&A on Uploaded PDFs using Groq + FAISS")
 
-uploaded_files = st.file_uploader("📤 Upload one or more PDF files", type=["pdf"], accept_multiple_files=True)
-user_query = st.text_input("🔍 Ask your question based on uploaded documents")
+uploaded_files = st.file_uploader(" Upload one or more PDF files", type=["pdf"], accept_multiple_files=True)
+user_query = st.text_input("Ask your question based on uploaded documents")
 
-# ========== Custom PDF Loader using PyMuPDF ==========
+
 def load_pdf_with_fitz(path):
     doc = fitz.open(path)
     documents = []
@@ -52,13 +52,13 @@ def load_pdf_with_fitz(path):
         documents.append(Document(page_content=text, metadata=metadata))
     return documents
 
-# ========== Process PDF Upload ==========
-if st.button("⚙️ Process and Embed PDFs"):
+
+if st.button(" Process and Embed PDFs"):
     if not uploaded_files:
-        st.warning("⚠️ Please upload at least one PDF file.")
+        st.warning("Please upload at least one PDF file.")
     else:
         docs = []
-        with st.spinner("🔄 Reading and splitting PDFs..."):
+        with st.spinner(" Reading and splitting PDFs..."):
             for uploaded_file in uploaded_files:
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
                     tmp_file.write(uploaded_file.read())
@@ -71,14 +71,14 @@ if st.button("⚙️ Process and Embed PDFs"):
 
             vector_store = FAISS.from_documents(final_chunks, embeddings)
             st.session_state.vectors = vector_store
-            st.success("✅ Vector store created and documents embedded successfully!")
+            st.success(" Vector store created and documents embedded successfully!")
 
-# ========== Handle User Query ==========
+
 if user_query:
     if "vectors" not in st.session_state:
-        st.warning("⚠️ Please upload and embed PDFs first.")
+        st.warning(" Please upload and embed PDFs first.")
     else:
-        with st.spinner("💬 Generating answer..."):
+        with st.spinner(" Generating answer."):
             document_chain = create_stuff_documents_chain(llm, prompt)
             retriever = st.session_state.vectors.as_retriever()
             retrieval_chain = create_retrieval_chain(retriever, document_chain)
@@ -87,11 +87,11 @@ if user_query:
             response = retrieval_chain.invoke({"input": user_query})
             elapsed = time.process_time() - start
 
-            st.subheader("📌 Answer")
+            st.subheader(" Answer")
             st.write(response["answer"])
-            st.caption(f"⏱️ Answer generated in {elapsed:.2f} seconds")
+            st.caption(f"⏱ Answer generated in {elapsed:.2f} seconds")
 
-            with st.expander("📚 Relevant Context Chunks"):
+            with st.expander(" Relevant context chunks"):
                 for i, doc in enumerate(response["context"]):
                     st.markdown(f"**Chunk {i+1}:**")
                     st.write(doc.page_content)

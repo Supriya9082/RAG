@@ -14,17 +14,17 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 
-# ========== Load Keys ==========
+
 load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 
-# ========== Fast LLM and Embeddings ==========
+
 llm = ChatGroq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192")
 
-# Fast CPU-friendly embedding model (3x faster than MiniLM-L6)
+
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-MiniLM-L3-v2")
 
-# ========== Prompt ==========
+
 prompt = ChatPromptTemplate.from_template("""
 Answer the question based only on the context provided below.
 
@@ -36,43 +36,43 @@ Question: {input}
 Answer:
 """)
 
-# ========== Streamlit UI ==========
-st.set_page_config(page_title="📄 RAG Q&A", layout="centered")
-st.title("⚡ RAG Q&A with Groq + FAISS (Optimized)")
 
-uploaded_files = st.file_uploader("📤 Upload PDF files", type=["pdf"], accept_multiple_files=True)
+st.set_page_config(page_title=" RAG Q&A", layout="centered")
+st.title("New RAG Q&A with Groq + FAISS (Optimized)")
+
+uploaded_files = st.file_uploader(" Upload PDF files", type=["pdf"], accept_multiple_files=True)
 user_query = st.text_input("🔍 Ask a question about the documents")
 
-# ========== PDF Loader ==========
+
 def load_pdf_with_fitz(path):
     doc = fitz.open(path)
     documents = []
     for i, page in enumerate(doc):
         text = page.get_text().strip()
-        if text:  # skip empty pages
+        if text:  
             documents.append(Document(page_content=text, metadata={"source": path, "page": i + 1}))
     return documents
 
-# ========== Chunking Parameters ==========
-chunk_size = 1500  # Larger chunks → fewer embeddings
+
+chunk_size = 1500  # Larger chunks - fewer embeddings
 chunk_overlap = 150
 
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
-# ========== Process PDFs ==========
-if st.button("⚙️ Process PDFs and Create Index"):
+
+if st.button(" Process PDFs and Create Index"):
     if not uploaded_files:
-        st.warning("🚨 Upload at least one PDF file.")
+        st.warning(" Upload at least one PDF file.")
     else:
         docs = []
-        with st.spinner("🔄 Reading and splitting PDFs..."):
+        with st.spinner(" Reading and splitting PDFs..."):
             for file in uploaded_files:
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                     tmp.write(file.read())
                     tmp_path = tmp.name
                 docs.extend(load_pdf_with_fitz(tmp_path))
 
-        with st.spinner("🔢 Splitting and embedding chunks..."):
+        with st.spinner(" Splitting and embedding chunks..."):
             chunks = text_splitter.split_documents(docs)
             start = time.time()
 
@@ -80,14 +80,14 @@ if st.button("⚙️ Process PDFs and Create Index"):
 
             elapsed = time.time() - start
             st.session_state.vectors = vectorstore
-            st.success(f"✅ Embedding done in {elapsed:.2f} seconds for {len(chunks)} chunks.")
+            st.success(f" Embedding done in {elapsed:.2f} seconds for {len(chunks)} chunks.")
 
-# ========== Query Handling ==========
+
 if user_query:
     if "vectors" not in st.session_state:
-        st.warning("🚨 Please process and embed PDFs first.")
+        st.warning(" Please process and embed PDFs first.")
     else:
-        with st.spinner("💬 Generating answer..."):
+        with st.spinner(" Generating answer..."):
             retriever = st.session_state.vectors.as_retriever()
             doc_chain = create_stuff_documents_chain(llm, prompt)
             rag_chain = create_retrieval_chain(retriever, doc_chain)
@@ -96,11 +96,11 @@ if user_query:
             result = rag_chain.invoke({"input": user_query})
             elapsed = time.time() - start
 
-            st.subheader("📌 Answer")
+            st.subheader(" Answer")
             st.write(result["answer"])
-            st.caption(f"⏱️ Generated in {elapsed:.2f} seconds")
+            st.caption(f" Generated in {elapsed:.2f} seconds")
 
-            with st.expander("📚 Context Chunks"):
+            with st.expander(" Context Chunks"):
                 for i, doc in enumerate(result["context"]):
                     st.markdown(f"**Chunk {i+1}:**")
                     st.write(doc.page_content)

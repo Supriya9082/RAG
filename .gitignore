@@ -1,0 +1,28 @@
+# .gitignore
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+
+# FAISS index and metadata
+faiss_index/
+*.faiss
+*.pkl
+*.json
+cache_*
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
